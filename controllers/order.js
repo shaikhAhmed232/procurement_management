@@ -1,14 +1,15 @@
 const Order = require('../models/order');
 const Checklist = require('../models/checklist');
-const { NotFoundError, ForbiddenError } = require('../lib/errors');
+const { NotFoundError, ForbiddenError, BadRequestError } = require('../lib/errors');
 const { userRoles, statusCode } = require('../lib/constants');
 
 exports.create = async (req, res) => {
-    const { client, checklist, meta } = req.body;
+    const { client, checklist, inspection_manager, meta } = req.body;
     const order = new Order({
-      procurement: req.user._id,
+      procurement_manager: req.user._id,
       client,
       checklist,
+      inspection_manager, 
       meta
     });
     await order.save();
@@ -26,7 +27,7 @@ exports.getById = async (req, res) => {
             {client: req.user._id}
         ]
     }
-    const order = await Order.findOne(query).populate('procurement_id inspection_id client_id checklist_id');
+    const order = await Order.findOne(query).populate('procurement_manager inspection_manager client checklist', '-password');
     if (!order) throw new NotFoundError('Order not found');
     res.status(statusCode.OK).json(order);
 };

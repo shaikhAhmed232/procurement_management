@@ -6,16 +6,17 @@ exports.register = async (req, res) => {
     const data = req.body;
     data.role = data.role.toLowerCase();
     
-    if (!("procurement_manager" in data)) {
+    if (data.role === "inspection_manager" && !("procurement_manager" in data)) {
         data["procurement_manager"] = req.user._id
     }
     const newUser = await User.create(data);
-    const user = await User.findById(newUser._id);
+    const user = await User.findById(newUser._id).select('-password');
     res.status(statusCode.CREATED).json(user);
 }
 
 exports.login = async (req, res) => {
     let { email, mobile_number, role, password } = req.body;
+    role = role.toLowerCase();
     let query = {
         role, 
     };
@@ -83,4 +84,19 @@ exports.getUsers = async (req, res) => {
     const users = await User.find(query).populate('procurement_manager', 'name email mobile_number role created_at updated_at').select('name email mobile_number role created_at updated_at');
 
     res.status(statusCode.OK).json(users);
+}
+
+exports.deleteUser = async (req, res) => {
+    const {user_id} = req.params;
+
+    const user = await User.findOneById(user_id);
+    if (!user) {
+        throw new NotFoundError("User not found");
+    }
+
+    await User.deleteOne({_id: user._id});
+
+    res.status(statusCode.OK).json({
+        message: "User deleted",
+    })
 }

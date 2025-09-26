@@ -9,7 +9,7 @@ exports.submitAnswer = async (req, res) => {
     // validate
     const order = await Order.findById(order_id);
     if (!order) throw new NotFoundError('Order not found');
-    const checklist = await Checklist.findById(order.checklist_id);
+    const checklist = await Checklist.findById(order.checklist);
     if (!checklist) throw new NotFoundError('Checklist template not found');
 
     const snapshotItems = items.map((it, idx) => {
@@ -38,7 +38,10 @@ exports.submitAnswer = async (req, res) => {
 };
 
 exports.uploadFiles = async (req, res) => {
-    const files = req.files.map((file) => ({url: file.path, type: file.mimetype, size: file.size, name: file.filename}))
+    const files = req.files.map((file) => {
+      file.path = file.path.replace("public/", "");
+      return {url: file.path, type: file.mimetype, size: file.size, name: file.filename}
+    })
     res.status(statusCode.OK).json(files);
 }
 

@@ -29,9 +29,9 @@ exports.list = async (req, res) => {
             query["created_by"] = req.user._id;
             break;
         case userRoles.INSPECTION_MANAGER:
-            const orders = await Order.find({inspection_id: req.user._id});
+            const orders = await Order.find({inspection_manager: req.user._id});
             query["_id"] = {
-                $in: orders.map((order) => order._id)
+                $in: orders.map((order) => order.checklist)
             };
             break;
         default:

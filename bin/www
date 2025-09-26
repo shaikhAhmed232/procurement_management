@@ -9,7 +9,7 @@ var app = require('../app');
 var debug = require('debug')('procurement-management:server');
 var http = require('http');
 const { connectToDb } = require("../database");
-const insertRoles = require("../seeds/insertRoles");
+const insertAdmin = require("../seeds/insertAdminUser");
 
 /**
  * Get port from environment and store in Express.
@@ -31,7 +31,8 @@ server.on('error', onError);
 server.on('listening', onListening);
 (async () => {
   await connectToDb();
-  await insertRoles();
+  const options = {create: true};
+  await insertAdmin(options);
   server.listen(port);
 })()
 
