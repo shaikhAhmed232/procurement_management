@@ -1,7 +1,7 @@
 const Answer = require('../models/answer');
 const Order = require('../models/order');
 const Checklist = require('../models/checklist');
-const { NotFoundError } = require('../lib/errors');
+const { NotFoundError, ForbiddenError } = require('../lib/errors');
 const { statusCode } = require('../lib/constants');
 
 exports.submitAnswer = async (req, res) => {
@@ -9,6 +9,7 @@ exports.submitAnswer = async (req, res) => {
     // validate
     const order = await Order.findById(order_id);
     if (!order) throw new NotFoundError('Order not found');
+    if (order.inspection_manager.toString() !== req.user._id) throw new ForbiddenError('Forbidden: insufficient privileges');
     const checklist = await Checklist.findById(order.checklist);
     if (!checklist) throw new NotFoundError('Checklist template not found');
 

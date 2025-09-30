@@ -31,8 +31,8 @@ server.on('error', onError);
 server.on('listening', onListening);
 (async () => {
   await connectToDb();
-  const options = {create: true};
-  await insertAdmin(options);
+  // const options = {create: true};
+  // await insertAdmin(options);
   server.listen(port);
 })()
 

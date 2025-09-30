@@ -8,21 +8,21 @@ const userSchema = new Schema({
         type: String,
         required: true,
     },
+    role: {
+        type: String,
+        enum: ["admin", "procurement_manager", "inspection_manager", "client"]
+    },
     email: {
         type: String,
-        required: () => this.role !== userRoles.INSPECTION_MANAGER,
+        unique: true
     },
     mobile_number: {
         type: String,
-        required: () => this.role === userRoles.INSPECTION_MANAGER,
+        unique: true,
     },
     password: {
         type: String,
         required: true,
-    },
-    role: {
-        type: String,
-        enum: ["admin", "procurement_manager", "inspection_manager", "client"]
     },
     procurement_manager: {
         type: Schema.Types.ObjectId,

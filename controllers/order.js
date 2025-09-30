@@ -1,6 +1,5 @@
 const Order = require('../models/order');
-const Checklist = require('../models/checklist');
-const { NotFoundError, ForbiddenError, BadRequestError } = require('../lib/errors');
+const { NotFoundError, ForbiddenError } = require('../lib/errors');
 const { userRoles, statusCode } = require('../lib/constants');
 
 exports.create = async (req, res) => {

@@ -15,30 +15,21 @@ exports.register = async (req, res) => {
 }
 
 exports.login = async (req, res) => {
-    let { email, mobile_number, role, password } = req.body;
-    role = role.toLowerCase();
-    let query = {
-        role, 
-    };
-    if (!role) {
-        throw new BadRequestError(`Please select your role, [${Object.values(userRoles)}]`);
-    };
-    if (rolesAllowedWithEmail.includes(role)) {
-        if (!email) {
-            throw new BadRequestError(`Need to provide email for role ${role}`);
-        };
-        query["email"] = email;
-    }
-    if (rolesAllowedWithMobile.includes(role)) {
-        if (!mobile_number) {
-            throw new BadRequestError(`Mobile number is required for ${role}`);
-        };
-        query["mobile_number"] = mobile_number;
-    }
-    const user = await User.findOne(query).select({email: 1, name: 1, role: 1, password: 1, mobile_number: 1});
+    let { uniqueId, password } = req.body;
+    const user = await User.findOne({
+        $or: [
+            {email: uniqueId || ''},
+            {mobile_number: uniqueId || ''}
+        ]
+    }).select('email mobile_number password role');
     if (!user) {
-        const error = new BadRequestError("Invalid credentials");
-        throw error;
+        throw new BadRequestError('Invalid credentials')
+    }
+    if (rolesAllowedWithEmail.includes(user.role) && uniqueId !== user.email) {
+        throw new BadRequestError("Please use your email to login");
+    }
+    if (rolesAllowedWithMobile.includes(user.role) && uniqueId !== user.mobile_number) {
+        throw new BadRequestError("Please use you phone number to login");
     }
     const passwordIsValid = await user.isValidPassword(user.password, password);
     if (!passwordIsValid) {
@@ -71,14 +62,14 @@ exports.assignProcurement = async (req, res) => {
 }
 
 exports.getUsers = async (req, res) => {
-    const {user_type} = req.query;
+    const {user_type = "inspection_manager"} = req.query;
     const query = {};
-    if (user_type) {
-        query["role"] = user_type;
-    }
+    query["role"] = user_type;
     if (req.user.role === userRoles.PROCUREMENT_MANAGER) {
-        query["role"] = userRoles.INSPECTION_MANAGER;
-        query["procurement_manager"] = req.user._id;
+        if (query.role !== userRoles.CLIENT) {
+            query["role"] = userRoles.INSPECTION_MANAGER;
+            query["procurement_manager"] = req.user._id;
+        }
     }
 
     const users = await User.find(query).populate('procurement_manager', 'name email mobile_number role created_at updated_at').select('name email mobile_number role created_at updated_at');
